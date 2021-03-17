@@ -1,12 +1,15 @@
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
 /**
  * A utility class capable of loading images, extracting assets from a compressed jar etc.
@@ -346,4 +349,54 @@ public class Utils {
     public static String removeExt(String s) {
         return s.replaceAll("\\..*$", "");
     }
+
+    /**
+     * Checks if the shift key is currently pressed
+     * @return if the shift key is down (was down at any time during the last tick)
+     */
+    public boolean isShiftDown() {
+        return World.mainframe.inpManager.isShiftDown();
+    }
+
+    /**
+     * Checks if the control key is currently pressed
+     * @return if the control key is down (was down at any time during the last tick)
+     */
+    public boolean isControlDown() {
+        return World.mainframe.inpManager.isControlDown();
+    }
+
+    /**
+     * Checks if the meta key is currently pressed
+     * meta aka Windows aka Super aka windoof etc
+     * @return if the meta key is down (was down at any time during the last tick)
+     */
+    public boolean isMetaDown() {
+        return World.mainframe.inpManager.isMetaDown();
+    }
+
+    /**
+     * Checks if the alt key is currently pressed
+     * @return if the alt key is down (was down at any time during the last tick)
+     */
+    public boolean isAltDown() {
+        return World.mainframe.inpManager.isAltDown();
+    }
+
+    /**
+     * Checks if the shift key is currently pressed
+     * @return if the shift key is down (was down at any time during the last tick)
+     */
+    public boolean isKeyDown(char key) {
+        return World.mainframe.inpManager.isKeyDown(key);
+    }
+
+    /**
+     * returns a list of all keys currently pressed
+     * @return the list of keys
+     */
+    public List<Character> getPressedKeys() {
+        return World.mainframe.inpManager.getPressedKeys();
+    }
+
 }

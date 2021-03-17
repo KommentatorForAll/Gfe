@@ -18,6 +18,11 @@ public abstract class WorldObj implements Tickable {
     public int x, y;
 
     /**
+     * The rotation of the image. Rotates the image when drawn and used when calling {@link WorldObj#move(int)}
+     */
+    public int rotation;
+
+    /**
      * The sprite of the Object.
      * If you want to use Buffered images use the {@link AdvancedImage#AdvancedImage(BufferedImage)} constructor
      */
@@ -87,6 +92,37 @@ public abstract class WorldObj implements Tickable {
     public final void move(int x, int y) {
         setX(this.x + x);
         setY(this.y + y);
+    }
+
+    /**
+     * moves by the given distance into the rotation.
+     * @param distance distance to move
+     */
+    public final void move(int distance) {
+        double radians = Math.toRadians(rotation);
+        int dx = (int)Math.round(Math.cos(radians) * (double)distance);
+        int dy = (int)Math.round(Math.sin(radians) * (double)distance);
+        setLocation(this.x + dx, this.y + dy);
+    }
+
+    /**
+     * sets the rotation to the given degree (0 = facing right)
+     * @param rot degree of the rotation
+     */
+    public final void setRotation(int rot) {
+        rotation = rot;
+    }
+
+    /**
+     * rotates the actor clockwise
+     * @param amount the amount to rotate by
+     */
+    public final void rotate(int amount) {
+        rotation += amount;
+    }
+
+    public final int getRotation() {
+        return rotation;
     }
 
     /**
@@ -234,8 +270,8 @@ public abstract class WorldObj implements Tickable {
      * @param cls the class to check
      * @return if any is touching
      */
-    public <T extends WorldObj> boolean isTouching(Class<T> cls) {
-        return world.objectsOf(cls).stream().anyMatch(this::isTouching);
+    public boolean isTouching(Class<?> cls) {
+        return world.objects.stream().filter(cls::isInstance).anyMatch(this::isTouching);
     }
 
     /**
@@ -243,7 +279,71 @@ public abstract class WorldObj implements Tickable {
      * @param cls to check of. any if null
      * @return the list of touching objects
      */
-    public <T extends WorldObj> List<T> getTouching(Class<T> cls) {
-        return world.objectsOf(cls).stream().filter(this::isTouching).collect(Collectors.toList());
+    public List<WorldObj> getTouching(Class<?> cls) {
+        return world.objects.stream().filter(cls::isInstance).filter(this::isTouching).collect(Collectors.toList());
+    }
+
+    /**
+     * @return returns the sprite of the object
+     */
+    public AdvancedImage getImage() {
+        return img;
+    }
+
+    /**
+     * @return the world the object is in. null if not present in a world.
+     */
+    public World getWorld() {return world;}
+
+    /**
+     * returns a list of objects in the specified range of this object
+     * @param range range the objects have to be in
+     * @param cls class of the object
+     * @return the list of objects in range
+     */
+    public List<WorldObj> objectsInRange(int range, Class<?> cls) {
+        return world.objectsInRange(x, y, range, cls);
+    }
+
+    /**
+     * Returns the eucledian distance to the object
+     * @param obj object to check the distance for
+     * @return the euclidian distance to the object
+     */
+    public double distanceTo(WorldObj obj) {
+        return distanceTo(obj.x, obj.y);
+    }
+
+    /**
+     * Returns the distance to a specific point
+     * @param x x coordinate of the point
+     * @param y y coordinate of the point
+     * @return the euclidian distance to the point
+     */
+    public double distanceTo(int x, int y) {
+        return Math.sqrt(Math.pow(x-this.x,2) + Math.pow(y-this.y,2));
+    }
+
+    /**
+     * returns all objects at the given offset
+     * @param x x offset
+     * @param y y offset
+     * @param cls class of the objects
+     * @return a list of the objects at the given offset
+     */
+    public <T extends WorldObj> List<T> objectsAtOffset(int x, int y, Class<T> cls) {
+        return world.objectsAt(x+this.x, y+this.y, cls);
+    }
+
+    /**
+     * returns a list of objects at the given offset
+     * @param x x offset
+     * @param y y offset
+     * @param inter interface the objects must implement
+     * @return a list of objects at the given interface
+     * @throws IllegalArgumentException when inter is null or not an interface
+     */
+    public List<WorldObj> objectsOfInterfaceAtOffset(int x, int y, Class<?> inter) {
+        return world.objectsOfInterfaceAt(x+this.x, y+this.y, inter);
     }
 }

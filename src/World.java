@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
  * Different Elements can be added, moved and others.
  * It creates events once a key is pressed or an element is clicked on.
  */
-public abstract class World implements Tickable, KeyListener, MouseListener, WindowListener {
+public abstract class World implements Tickable {
 
     /**
      * The size of each field.
@@ -31,16 +31,6 @@ public abstract class World implements Tickable, KeyListener, MouseListener, Win
      * All objects in the world.
      */
     public Collection<WorldObj> objects;
-
-    /**
-     * A queue of the keys pressed. Gets emptied every tick and issues the according events
-     */
-    public Queue<KeyEventInfo> keys = new ConcurrentLinkedQueue<>();
-
-    /**
-     * A queue of the click events. Gets emptied every tick and issues the according events.
-     */
-    public Queue<MouseEventInfo> clicks = new ConcurrentLinkedQueue<>();
 
     /**
      * The engine the world is running on.
@@ -97,7 +87,7 @@ public abstract class World implements Tickable, KeyListener, MouseListener, Win
         updateSW();
         random = new Random();
         objects = new CopyOnWriteArrayList<>();
-        ui = new WorldUI(pixelSize*width, pixelSize*height, pixelSize, this);
+        ui = new WorldUI(pixelSize*width, pixelSize*height, pixelSize);
         start();
     }
 
@@ -157,6 +147,28 @@ public abstract class World implements Tickable, KeyListener, MouseListener, Win
     }
 
     /**
+     * @return the amount of fields the world has on the x axis
+     */
+    public final int getWidth() {return width;}
+
+    /**
+     * @return the amount of fields the world has on the y axis
+     */
+    public final int getHeight() {return height;}
+
+    /**
+     * Fetches the absolut width of the world
+     * @return the width in pixel the world is wide
+     */
+    public final int getAbsWidth() {return width*pixelSize;}
+
+    /**
+     * Fetches the absolute height of the world
+     * @return the height in pixel of the world
+     */
+    public final int getAbsHeight() {return height*pixelSize;}
+
+    /**
      * gets called every tick. this is the super version of the tick method, calls tick()
      */
     public final void _tick() {
@@ -171,6 +183,14 @@ public abstract class World implements Tickable, KeyListener, MouseListener, Win
      * the tick method, which gets called every tick. has to be overwritten
      */
     public abstract void tick();
+
+    public final void handleKeys() {
+
+    }
+
+    public final void handleMouse() {
+
+    }
 
     /**
      * adds an object to the world, at the given position
@@ -208,6 +228,16 @@ public abstract class World implements Tickable, KeyListener, MouseListener, Win
      */
     public final <T extends WorldObj> void removeObjects(Class<T> cls) {
         objects.removeAll(objectsOf(cls));
+    }
+
+    /**
+     * removes all objects of the given interface
+     * @param inter the interface of the objects to remove
+     * @throws IllegalArgumentException when the interface is null or not an interface
+     */
+    public final void removeObjectsOfInterface(Class<?> inter) {
+        if (inter == null || !inter.isInterface()) throw new IllegalArgumentException("Class must not be null or a non-Interface");
+        objects.removeAll(objectsOfInterface(inter));
     }
 
     /**
@@ -270,6 +300,12 @@ public abstract class World implements Tickable, KeyListener, MouseListener, Win
     }
 
     /**
+     * Fetches the background image
+     * @return the image in the background
+     */
+    public final AdvancedImage getBackground() {return ui.backgroundImage;}
+
+    /**
      * Returns if an object is exactly at the given position
      * @param x x position
      * @param y y position
@@ -293,11 +329,21 @@ public abstract class World implements Tickable, KeyListener, MouseListener, Win
      * returns a list of all objects of the given class
      * @param cls the class all fetched objects are from
      * @return a list of objects
-     * @throws NullPointerException when cls is null
      */
     public final <T extends WorldObj> List<T> objectsOf(Class<T> cls) {
         if (cls == null) return (List<T>) objects;
         return objects.stream().filter(cls::isInstance).map(o -> (T) o).collect(Collectors.toList());
+    }
+
+    /**
+     * returns a list of all objects of the given Interface
+     * @param inter the interface to get the objects of
+     * @return the list of objects implementing the interface
+     * @throws IllegalArgumentException when the class is either null or not an Interface
+     */
+    public final List<WorldObj> objectsOfInterface(Class<?> inter) {
+        if (inter == null || !inter.isInterface()) throw new IllegalArgumentException("Class must not be null or a non-Interface");
+        return objects.stream().filter(inter::isInstance).collect(Collectors.toList());
     }
 
     /**
@@ -311,182 +357,18 @@ public abstract class World implements Tickable, KeyListener, MouseListener, Win
         return objectsOf(cls).stream().filter(o -> o.x == x && o.y == y).collect(Collectors.toList());
     }
 
-
     /**
-     * The event called by the JFrame. adds a new Keyevent to the queue
-     * @param e the event created
+     * returns all objects at the given position
+     * @param x x position
+     * @param y y position
+     * @param inter the Interface to chack for
+     * @return list of objects
+     * @throws IllegalArgumentException when the class is null or not an interface
      */
-    @Override
-    public final void keyTyped(KeyEvent e) {
-        keys.add(new KeyEventInfo(e, 0));
+    public final List<WorldObj> objectsOfInterfaceAt(int x, int y, Class<?> inter) {
+        if (inter == null || !inter.isInterface()) throw new IllegalArgumentException("Class must not be null or a non-Interface");
+        return objectsOfInterface(inter).stream().filter(o -> o.x == x && o.y == y).collect(Collectors.toList());
     }
-
-    /**
-     * The event called by the JFrame. adds a new Keyevent to the queue
-     * @param e the event created
-     */
-    @Override
-    public final void keyPressed(KeyEvent e) {
-        keys.add(new KeyEventInfo(e, 1));
-    }
-
-    /**
-     * The event called by the JFrame. adds a new Keyevent to the queue
-     * @param e the event created
-     */
-    @Override
-    public final void keyReleased(KeyEvent e) {
-        keys.add(new KeyEventInfo(e, 2));
-    }
-
-    /**
-     * handles all key events and issues the events in the sub classes.
-     */
-    public final void handleKeys() {
-        KeyEventInfo e;
-        while ((e = keys.poll()) != null)
-        {
-            switch (e.type) {
-                case 0:
-                    keyTyped(e.e.getKeyChar());
-                    keyTyped((int)e.e.getKeyChar());
-                    break;
-                case 1:
-                    keyPressed(e.e.getKeyChar());
-                    keyPressed((int)e.e.getKeyChar());
-                    KeyEventInfo finalE = e;
-                    objectsOf(Textfield.class).stream().filter(tf -> tf.isSelected).forEach(tf -> tf.keyTyped(finalE.e.getKeyChar()));
-                    break;
-                case 2:
-                    keyReleased(e.e.getKeyChar());
-                    keyReleased((int)e.e.getKeyChar());
-                    break;
-            }
-        }
-    }
-
-
-    /**
-     * event called, when a key is typed
-     * @param key the char of the key
-     */
-    public void keyTyped(char key){}
-
-    /**
-     * event called, when a key is pressed
-     * @param key the char of the key
-     */
-    public void keyPressed(char key){}
-
-    /**
-     * event called, when a key is released
-     * @param key the char of the key
-     */
-    public void keyReleased(char key){}
-
-    /**
-     * event called, when a key is typed
-     * @param key the ascii value of the key
-     */
-    public void keyTyped(int key){}
-
-    /**
-     * event called, when a key is pressed
-     * @param key the ascii value of the key
-     */
-    public void keyPressed(int key){}
-
-    /**
-     * event called, when a key is released
-     * @param key the ascii value of the key
-     */
-    public void keyReleased(int key){}
-
-    /**
-     * Called by the JFrame, when an mouseevent occures. adds it to the queue
-     * @param e the created event
-     */
-    public final void mousePressed(MouseEvent e) {
-        clicks.add(new MouseEventInfo(e, MouseEventInfo.MOUSE_PRESSED));
-    }
-
-    public void mousePressed(MouseEvent e, WorldObj obj) {}
-
-
-    /**
-     * Called by the JFrame, when an mouseevent occures. adds it to the queue
-     * @param e the created event
-     */
-    public final void mouseClicked(MouseEvent e) {
-        clicks.add(new MouseEventInfo(e, MouseEventInfo.MOUSE_CLICKED));
-    }
-
-    public void mouseClicked(MouseEvent e, WorldObj obj) {}
-
-
-    /**
-     * Called by the JFrame, when an mouseevent occures. adds it to the queue
-     * @param e the created event
-     */
-    public final void mouseReleased(MouseEvent e) {
-        clicks.add(new MouseEventInfo(e, MouseEventInfo.MOUSE_RELEASED));
-    }
-
-    public void mouseReleased(MouseEvent e, WorldObj obj) {}
-
-    /**
-     * Called by the JFrame, when an mouseevent occures. adds it to the queue
-     * @param e the created event
-     */
-    public final void mouseEntered(MouseEvent e) {
-        clicks.add(new MouseEventInfo(e, MouseEventInfo.MOUSE_ENTERED));
-    }
-
-    public void mouseEntered(MouseEvent e, WorldObj obj) {}
-
-    /**
-     * Called by the JFrame, when an mouseevent occures. adds it to the queue
-     * @param e the created event
-     */
-    public final void mouseExited(MouseEvent e) {
-        clicks.add(new MouseEventInfo(e,MouseEventInfo.MOUSE_EXITED));
-    }
-
-    public void mouseExited(MouseEvent e, WorldObj obj) {}
-
-    /**
-     * Handles all Mouse events.
-     * Issues the events of the world as well as the clicked objects.
-     */
-    public void handleMouse() {
-        MouseEventInfo e;
-        WorldObj o;
-        List<WorldObj> objs;
-        while ((e = clicks.poll()) != null) {
-            Point p = e.e.getPoint();
-            objs = objects.stream().filter(ob -> ob.isAt(p.x-mainframe.bardim[0], p.y-mainframe.bardim[1], true)).collect(Collectors.toList());
-            o = objs.isEmpty()? null : objs.get(0);
-            MouseEventInfo finalE = e;
-            switch (e.type) {
-                case MouseEventInfo.MOUSE_PRESSED:
-                    mousePressed(e.e, o);
-                    break;
-                case MouseEventInfo.MOUSE_CLICKED:
-                    mouseClicked(e.e, o);
-                    break;
-                case MouseEventInfo.MOUSE_RELEASED:
-                    mouseReleased(e.e, o);
-                    break;
-                case MouseEventInfo.MOUSE_ENTERED:
-                    mouseEntered(e.e, o);
-                    break;
-                case MouseEventInfo.MOUSE_EXITED:
-                    mouseExited(e.e, o);
-            }
-            objs.forEach(ob -> ob._mouseEvent(finalE));
-        }
-    }
-
 
     /**
      * sets the order in which the objects are getting painted.
@@ -523,40 +405,15 @@ public abstract class World implements Tickable, KeyListener, MouseListener, Win
     }
 
     /**
-     * called as a WindowListener, can be implemented for initial or final actions
+     * returns all objects in range from a specified point
+     * @param x x coordinate of the center
+     * @param y y coordinate of the center
+     * @param range range the objects have to be in
+     * @param cls Class of the objects.
+     * @return a list of objects in the specified range
+     * @throws NullPointerException if {@param cls} is null
      */
-    public void windowOpened(WindowEvent e) {}
-    /**
-     * called as a WindowListener, can be implemented for initial or final actions
-     */
-    public void windowClosed(WindowEvent e) {}
-    /**
-     * called as a WindowListener, can be implemented for initial or final actions
-     */
-    public void windowClosing(WindowEvent e) {}
-    /**
-     * called as a WindowListener, can be implemented for initial or final actions
-     */
-    public void windowIconified(WindowEvent e) {}
-    /**
-     * called as a WindowListener, can be implemented for initial or final actions
-     */
-    public void windowDeiconified(WindowEvent e) {}
-    /**
-     * called as a WindowListener, can be implemented for initial or final actions
-     */
-    public void windowActivated(WindowEvent e) {}
-    /**
-     * called as a WindowListener, can be implemented for initial or final actions
-     */
-    public void windowDeactivated(WindowEvent e) {}
-
-    private static class KeyEventInfo {
-        public int type;
-        public KeyEvent e;
-        public KeyEventInfo(KeyEvent e, int type) {
-            this.e = e;
-            this.type = type;
-        }
+    public List<WorldObj> objectsInRange(int x, int y, int range, Class<?> cls) {
+        return objects.stream().filter(cls::isInstance).filter(o -> o.distanceTo(x,y) <= range).collect(Collectors.toList());
     }
 }

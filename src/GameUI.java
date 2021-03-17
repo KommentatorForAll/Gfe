@@ -40,23 +40,18 @@ public class GameUI extends JFrame {
     public World world;
 
     /**
+     * The interface handling all key and mouse events, relaying them to the world sync as well as async
+     */
+    public InputsManager inpManager;
+
+    /**
      * Creates a new UI for a world
      * @param name the name displayed at the taskbar
      * @param world the world
      */
     public GameUI(String name, World world) {
-        this(name, world.ui);
+        this(name, world, true);
     }
-
-    /**
-     * Creates a new UI for a jpannel
-     * @param name name displayed at the taskbar
-     * @param worldUI the worlds UI
-     */
-    public GameUI(String name, JPanel worldUI) {
-        this(name, worldUI, true, null, null);
-    }
-
     /**
      * Creates a new UI for a JPanel
      * @param name the name displayed at the taskbar
@@ -64,29 +59,19 @@ public class GameUI extends JFrame {
      * @param adContaminated currently uselsess
      */
     public GameUI(String name, World world, boolean adContaminated) {
-        this(name, world.ui, adContaminated, world, world);
-    }
-
-    /**
-     * Creates a new UI for a world
-     * @param name name, displayed at the taskbar
-     * @param worldUI the ui of the world
-     * @param adContaminated if the world is ad contaminated (useless currently)
-     * @param kl the litener, keyevents get redirected to
-     * @param ml the listener, mouseevents get redirected to
-     */
-    public GameUI(String name, JPanel worldUI, boolean adContaminated, KeyListener kl, MouseListener ml) {
         super(name);
         setLayout(null);
         //setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
 
+        inpManager = new InputsManager(this);
+
         bardim = getBorderDims();
         this.adContaminated = adContaminated;
-        switchWorld((World) kl);
+        switchWorld(world);
         mpos = getLastMonitorPosition();
-        setLocation(mpos[0]-worldUI.getWidth()/2,mpos[1]-worldUI.getHeight()/2);
+        setLocation(mpos[0]-world.ui.getWidth()/2,mpos[1]-world.ui.getHeight()/2);
     }
 
     /**
@@ -98,13 +83,8 @@ public class GameUI extends JFrame {
         mpos = getLastMonitorPosition();
         World.mainframe = this;
         WorldUI worldUI = world.ui;
-        removeMouseListener(this.world);
-        removeKeyListener(this.world);
         if (this.world != null)
             remove(this.world.ui);
-        addKeyListener(world);
-        addMouseListener(world);
-        addWindowListener(world);
         this.world = world;
         int x = worldUI.getWidth(), y = worldUI.getHeight();
         if (adContaminated) {

@@ -40,7 +40,7 @@ public class WorldUI extends JPanel {
      * @param height height of the ui
      */
     public WorldUI(int width, int height) {
-        this(width, height,1, null);
+        this(width, height,1);
     }
 
     /**
@@ -48,9 +48,8 @@ public class WorldUI extends JPanel {
      * @param width amount of fields on the x axis
      * @param height amount of fields on the y axis
      * @param pxsize size of the fields in px
-     * @param kl the keylistener
      */
-    public WorldUI(int width, int height, int pxsize, KeyListener kl) {
+    public WorldUI(int width, int height, int pxsize) {
         super();
         objs = new ArrayList<>();
         paintOrder = new ArrayList<>();
@@ -59,7 +58,6 @@ public class WorldUI extends JPanel {
         //setMaximumSize();
         setVisible(true);
         this.pxsize = pxsize;
-        addKeyListener(kl);
     }
 
     /**
