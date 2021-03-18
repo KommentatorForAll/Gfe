@@ -54,7 +54,7 @@ public abstract class WorldObj implements Tickable {
      * @param x the new x position
      */
     public final void setX(int x) {
-        this.x = world!=null?world.hardEdge?Math.max(0,Math.min(x,world.width)):x:x;
+        this.x = world!=null?world.hardEdge?Math.max(0,Math.min(x,world.width-1)):x:x;
     }
 
     /**
@@ -62,7 +62,7 @@ public abstract class WorldObj implements Tickable {
      * @param y the new y position
      */
     public final void setY(int y) {
-        this.y = world!=null?world.hardEdge?Math.max(0,Math.min(y,world.width)):y:y;
+        this.y = world!=null?world.hardEdge?Math.max(0,Math.min(y,world.height-1)):y:y;
     }
 
     /**
@@ -260,9 +260,10 @@ public abstract class WorldObj implements Tickable {
      * @return if the two object touch
      */
     public boolean isTouching(WorldObj o) {
+        if (o == this) return false;
         Area a = new Area(o.getShape());
         a.intersect(new Area(getShape()));
-        return a.isEmpty();
+        return !a.isEmpty();
     }
 
     /**

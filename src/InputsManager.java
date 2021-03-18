@@ -79,7 +79,7 @@ public class InputsManager implements MouseListener, KeyListener, WindowListener
      * @return if the shift key is down (was down at any time during the last tick)
      */
     public boolean isKeyDown(char key) {
-        return keysDown.stream().anyMatch(k -> k.getKeyChar() == key);
+        return keysDown.stream().anyMatch(k -> Character.toLowerCase(k.getKeyChar()) == key);
     }
 
     /**
@@ -87,7 +87,7 @@ public class InputsManager implements MouseListener, KeyListener, WindowListener
      * @return the list of keys
      */
     public List<Character> getPressedKeys() {
-        return keysDown.stream().map(k -> k.getKeyChar()).collect(Collectors.toList());
+        return keysDown.stream().map(KeyEvent::getKeyChar).collect(Collectors.toList());
     }
 
     /**
@@ -106,7 +106,8 @@ public class InputsManager implements MouseListener, KeyListener, WindowListener
     @Override
     public final void keyPressed(KeyEvent e) {
         keys.add(new KeyEventInfo(e, 1));
-        keysDown.add(e);
+        if (!keysDown.stream().anyMatch(k -> k.getKeyCode() == e.getKeyCode()))
+            keysDown.add(e);
     }
 
     /**
@@ -116,7 +117,7 @@ public class InputsManager implements MouseListener, KeyListener, WindowListener
     @Override
     public final void keyReleased(KeyEvent e) {
         keys.add(new KeyEventInfo(e, 2));
-        keysDown.remove(e);
+        keysDown.removeIf(k -> k.getKeyCode() == e.getKeyCode());
     }
 
     /**
@@ -128,59 +129,22 @@ public class InputsManager implements MouseListener, KeyListener, WindowListener
         {
             switch (e.type) {
                 case 0:
-                    keyTyped(e.e.getKeyChar());
-                    keyTyped((int)e.e.getKeyChar());
+                    frame.world.keyTyped(e.e.getKeyChar());
+                    frame.world.keyTyped((int)e.e.getKeyChar());
                     break;
                 case 1:
-                    keyPressed(e.e.getKeyChar());
-                    keyPressed((int)e.e.getKeyChar());
+                    frame.world.keyPressed(e.e.getKeyChar());
+                    frame.world.keyPressed((int)e.e.getKeyChar());
                     KeyEventInfo finalE = e;
                     frame.world.objectsOf(Textfield.class).stream().filter(tf -> tf.isSelected).forEach(tf -> tf.keyTyped(finalE.e.getKeyChar()));
                     break;
                 case 2:
-                    keyReleased(e.e.getKeyChar());
-                    keyReleased((int)e.e.getKeyChar());
+                    frame.world.keyReleased(e.e.getKeyChar());
+                    frame.world.keyReleased((int)e.e.getKeyChar());
                     break;
             }
         }
     }
-
-
-    /**
-     * event called, when a key is typed
-     * @param key the char of the key
-     */
-    public void keyTyped(char key){}
-
-    /**
-     * event called, when a key is pressed
-     * @param key the char of the key
-     */
-    public void keyPressed(char key){}
-
-    /**
-     * event called, when a key is released
-     * @param key the char of the key
-     */
-    public void keyReleased(char key){}
-
-    /**
-     * event called, when a key is typed
-     * @param key the ascii value of the key
-     */
-    public void keyTyped(int key){}
-
-    /**
-     * event called, when a key is pressed
-     * @param key the ascii value of the key
-     */
-    public void keyPressed(int key){}
-
-    /**
-     * event called, when a key is released
-     * @param key the ascii value of the key
-     */
-    public void keyReleased(int key){}
 
     /**
      * Called by the JFrame, when an mouseevent occures. adds it to the queue
@@ -190,7 +154,6 @@ public class InputsManager implements MouseListener, KeyListener, WindowListener
         clicks.add(new MouseEventInfo(e, MouseEventInfo.MOUSE_PRESSED));
     }
 
-    public void mousePressed(MouseEvent e, WorldObj obj) {}
 
 
     /**
@@ -201,7 +164,6 @@ public class InputsManager implements MouseListener, KeyListener, WindowListener
         clicks.add(new MouseEventInfo(e, MouseEventInfo.MOUSE_CLICKED));
     }
 
-    public void mouseClicked(MouseEvent e, WorldObj obj) {}
 
 
     /**
@@ -212,7 +174,6 @@ public class InputsManager implements MouseListener, KeyListener, WindowListener
         clicks.add(new MouseEventInfo(e, MouseEventInfo.MOUSE_RELEASED));
     }
 
-    public void mouseReleased(MouseEvent e, WorldObj obj) {}
 
     /**
      * Called by the JFrame, when an mouseevent occures. adds it to the queue
@@ -222,7 +183,6 @@ public class InputsManager implements MouseListener, KeyListener, WindowListener
         clicks.add(new MouseEventInfo(e, MouseEventInfo.MOUSE_ENTERED));
     }
 
-    public void mouseEntered(MouseEvent e, WorldObj obj) {}
 
     /**
      * Called by the JFrame, when an mouseevent occures. adds it to the queue
@@ -232,7 +192,6 @@ public class InputsManager implements MouseListener, KeyListener, WindowListener
         clicks.add(new MouseEventInfo(e,MouseEventInfo.MOUSE_EXITED));
     }
 
-    public void mouseExited(MouseEvent e, WorldObj obj) {}
 
     /**
      * Handles all Mouse events.
@@ -249,19 +208,19 @@ public class InputsManager implements MouseListener, KeyListener, WindowListener
             MouseEventInfo finalE = e;
             switch (e.type) {
                 case MouseEventInfo.MOUSE_PRESSED:
-                    mousePressed(e.e, o);
+                    frame.world.mousePressed(e.e, o);
                     break;
                 case MouseEventInfo.MOUSE_CLICKED:
-                    mouseClicked(e.e, o);
+                    frame.world.mouseClicked(e.e, o);
                     break;
                 case MouseEventInfo.MOUSE_RELEASED:
-                    mouseReleased(e.e, o);
+                    frame.world.mouseReleased(e.e, o);
                     break;
                 case MouseEventInfo.MOUSE_ENTERED:
-                    mouseEntered(e.e, o);
+                    frame.world.mouseEntered(e.e, o);
                     break;
                 case MouseEventInfo.MOUSE_EXITED:
-                    mouseExited(e.e, o);
+                    frame.world.mouseExited(e.e, o);
             }
             objs.forEach(ob -> ob._mouseEvent(finalE));
         }
@@ -269,30 +228,44 @@ public class InputsManager implements MouseListener, KeyListener, WindowListener
     /**
      * called as a WindowListener, can be implemented for initial or final actions
      */
-    public void windowOpened(WindowEvent e) {}
+    public void windowOpened(WindowEvent e) {
+        frame.world.windowOpened(e);
+    }
     /**
      * called as a WindowListener, can be implemented for initial or final actions
      */
-    public void windowClosed(WindowEvent e) {}
+    public void windowClosed(WindowEvent e) {
+        frame.world.windowClosed(e);
+    }
     /**
      * called as a WindowListener, can be implemented for initial or final actions
      */
-    public void windowClosing(WindowEvent e) {}
+    public void windowClosing(WindowEvent e) {
+        frame.world.windowClosing(e);
+    }
     /**
      * called as a WindowListener, can be implemented for initial or final actions
      */
-    public void windowIconified(WindowEvent e) {}
+    public void windowIconified(WindowEvent e) {
+        frame.world.windowIconified(e);
+    }
     /**
      * called as a WindowListener, can be implemented for initial or final actions
      */
-    public void windowDeiconified(WindowEvent e) {}
+    public void windowDeiconified(WindowEvent e) {
+        frame.world.windowDeiconified(e);
+    }
     /**
      * called as a WindowListener, can be implemented for initial or final actions
      */
-    public void windowActivated(WindowEvent e) {}
+    public void windowActivated(WindowEvent e) {
+        frame.world.windowActivated(e);
+    }
     /**
      * called as a WindowListener, can be implemented for initial or final actions
      */
-    public void windowDeactivated(WindowEvent e) {}
+    public void windowDeactivated(WindowEvent e) {
+        frame.world.windowDeactivated(e);
+    }
 
 }

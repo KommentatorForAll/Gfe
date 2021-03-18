@@ -81,13 +81,14 @@ public abstract class World implements Tickable {
      */
     public World(int width, int height, int pixelSize) {
         if(width <= 0 || height <= 0 || pixelSize <= 0) throw new IllegalArgumentException("Size must not be less or equal 0");
+        ui = new WorldUI(pixelSize*width, pixelSize*height, pixelSize);
+        mainframe = mainframe == null?new GameUI("game", this) : mainframe;
         this.width = width;
         this.height = height;
         this.pixelSize = pixelSize;
         updateSW();
         random = new Random();
         objects = new CopyOnWriteArrayList<>();
-        ui = new WorldUI(pixelSize*width, pixelSize*height, pixelSize);
         start();
     }
 
@@ -185,11 +186,11 @@ public abstract class World implements Tickable {
     public abstract void tick();
 
     public final void handleKeys() {
-
+        mainframe.inpManager.handleKeys();
     }
 
     public final void handleMouse() {
-
+        mainframe.inpManager.handleMouse();
     }
 
     /**
@@ -336,6 +337,27 @@ public abstract class World implements Tickable {
     }
 
     /**
+     * Returns all objects which are not from the given class
+     * @param cls the class to exclude
+     * @return all objects not instance of the the class
+     */
+    public final List<WorldObj> objectsOfNot(Class<? extends WorldObj> cls) {
+        if (cls == null) return (List<WorldObj>) objects;
+        return objects.stream().filter(o -> !cls.isInstance(o)).collect(Collectors.toList());
+    }
+
+    /**
+     * Removes all objects except those instance of the given class(es)
+     * @param cls the class(es) to exclude from the purge
+     */
+    @SafeVarargs
+    public final void removeObjectsExclusive(Class<? extends WorldObj>... cls) {
+        Collection<WorldObj> c = new ArrayList<>(objects);
+        Arrays.asList(cls).forEach(cl -> c.removeAll(objectsOf(cl)));
+        removeObjects(c);
+    }
+
+    /**
      * returns a list of all objects of the given Interface
      * @param inter the interface to get the objects of
      * @return the list of objects implementing the interface
@@ -416,4 +438,77 @@ public abstract class World implements Tickable {
     public List<WorldObj> objectsInRange(int x, int y, int range, Class<?> cls) {
         return objects.stream().filter(cls::isInstance).filter(o -> o.distanceTo(x,y) <= range).collect(Collectors.toList());
     }
+
+
+    /**
+     * event called, when a key is typed
+     * @param key the char of the key
+     */
+    public void keyTyped(char key){}
+
+    /**
+     * event called, when a key is pressed
+     * @param key the char of the key
+     */
+    public void keyPressed(char key){}
+
+    /**
+     * event called, when a key is released
+     * @param key the char of the key
+     */
+    public void keyReleased(char key){}
+
+    /**
+     * event called, when a key is typed
+     * @param key the ascii value of the key
+     */
+    public void keyTyped(int key){}
+
+    /**
+     * event called, when a key is pressed
+     * @param key the ascii value of the key
+     */
+    public void keyPressed(int key){}
+
+    /**
+     * event called, when a key is released
+     * @param key the ascii value of the key
+     */
+    public void keyReleased(int key){}
+
+    /**
+     * called as a WindowListener, can be implemented for initial or final actions
+     */
+    public void windowOpened(WindowEvent e) {}
+    /**
+     * called as a WindowListener, can be implemented for initial or final actions
+     */
+    public void windowClosed(WindowEvent e) {}
+    /**
+     * called as a WindowListener, can be implemented for initial or final actions
+     */
+    public void windowClosing(WindowEvent e) {}
+    /**
+     * called as a WindowListener, can be implemented for initial or final actions
+     */
+    public void windowIconified(WindowEvent e) {}
+    /**
+     * called as a WindowListener, can be implemented for initial or final actions
+     */
+    public void windowDeiconified(WindowEvent e) {}
+    /**
+     * called as a WindowListener, can be implemented for initial or final actions
+     */
+    public void windowActivated(WindowEvent e) {}
+    /**
+     * called as a WindowListener, can be implemented for initial or final actions
+     */
+    public void windowDeactivated(WindowEvent e) {}
+
+    public void mouseExited(MouseEvent e, WorldObj obj) {}
+    public void mouseEntered(MouseEvent e, WorldObj obj) {}
+    public void mouseReleased(MouseEvent e, WorldObj obj) {}
+    public void mouseClicked(MouseEvent e, WorldObj obj) {}
+    public void mousePressed(MouseEvent e, WorldObj obj) {}
+
 }

@@ -1,4 +1,5 @@
 import javax.imageio.ImageIO;
+import javax.sound.sampled.Clip;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -9,6 +10,7 @@ import java.util.*;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -47,7 +49,7 @@ public class Utils {
      * @return the loaded image. !!may be null if no image was found!!
      */
     public static AdvancedImage loadImage(String filelocation) {
-        if (!filelocation.matches("\\..+$")) {
+        if (!filelocation.matches(".*\\.\\w+$")) {
             filelocation += ".png";
         }
         try {
@@ -279,6 +281,22 @@ public class Utils {
     }
 
     /**
+     * Returns the angle fitting the movement Vector of a given WorldObj.
+     *
+     * @param dir a vector.
+     * @return The angle which one needs to rotate to to match the vector.
+     */
+    public static int getRotationAngle(double[] dir) {
+        double den = (Math.sqrt(Math.pow(dir[0], 2) + Math.pow(dir[1], 2)));
+        double cos = dir[0] / den;
+        int ret = (int) Math.round(Math.toDegrees(Math.acos(cos)));
+        if (dir[1] < 0)
+            return 360 - ret;
+        else
+            return ret;
+    }
+
+    /**
      *  This method is responsible for extracting resource files from within the .jar to the temporary directory.
      *  @param sourceFile The filepath relative to the 'Resources/' directory within the .jar from which to extract the file.
      *  @return A file object to the extracted file
@@ -311,6 +329,27 @@ public class Utils {
             ioe.printStackTrace();
             return null;
         }
+    }
+
+    public static Map<String, Clip> loadAllClips() {
+        if (!attemptedJar) attemptJar();
+        Map<String, Clip> sounds = new HashMap<>();
+        File dir = new File(assets+"sounds/");
+        File[] dirFiles = dir.listFiles();
+        String name;
+        if (dirFiles != null) {
+            for (File child : dirFiles) {
+                name = child.getName();
+                try {
+                    sounds.put(removeExt(name), MusicHandler.loadClip(name));
+                }
+                catch (Exception e) {
+                    System.err.println("Error while loading sound {}".replace("{}", name));
+                    e.printStackTrace();
+                }
+            }
+        }
+        return sounds;
     }
 
     /**
@@ -347,14 +386,14 @@ public class Utils {
      * @return the filename without extension
      */
     public static String removeExt(String s) {
-        return s.replaceAll("\\..*$", "");
+        return s.replaceAll("\\.\\w+$", "");
     }
 
     /**
      * Checks if the shift key is currently pressed
      * @return if the shift key is down (was down at any time during the last tick)
      */
-    public boolean isShiftDown() {
+    public static boolean isShiftDown() {
         return World.mainframe.inpManager.isShiftDown();
     }
 
@@ -362,7 +401,7 @@ public class Utils {
      * Checks if the control key is currently pressed
      * @return if the control key is down (was down at any time during the last tick)
      */
-    public boolean isControlDown() {
+    public static boolean isControlDown() {
         return World.mainframe.inpManager.isControlDown();
     }
 
@@ -371,7 +410,7 @@ public class Utils {
      * meta aka Windows aka Super aka windoof etc
      * @return if the meta key is down (was down at any time during the last tick)
      */
-    public boolean isMetaDown() {
+    public static boolean isMetaDown() {
         return World.mainframe.inpManager.isMetaDown();
     }
 
@@ -379,7 +418,7 @@ public class Utils {
      * Checks if the alt key is currently pressed
      * @return if the alt key is down (was down at any time during the last tick)
      */
-    public boolean isAltDown() {
+    public static boolean isAltDown() {
         return World.mainframe.inpManager.isAltDown();
     }
 
@@ -387,7 +426,7 @@ public class Utils {
      * Checks if the shift key is currently pressed
      * @return if the shift key is down (was down at any time during the last tick)
      */
-    public boolean isKeyDown(char key) {
+    public static boolean isKeyDown(char key) {
         return World.mainframe.inpManager.isKeyDown(key);
     }
 
@@ -395,8 +434,7 @@ public class Utils {
      * returns a list of all keys currently pressed
      * @return the list of keys
      */
-    public List<Character> getPressedKeys() {
+    public static List<Character> getPressedKeys() {
         return World.mainframe.inpManager.getPressedKeys();
     }
-
 }

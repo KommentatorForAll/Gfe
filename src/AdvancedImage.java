@@ -22,6 +22,20 @@ public class AdvancedImage extends BufferedImage implements Cloneable {
     public ImageSizing imgs = ImageSizing.NONE;
 
     /**
+     * if meta information (rgb values of pixel with alpha 0) is kept when drawing
+     */
+    public static boolean keepMetaInfo;
+
+    /**
+     * creates a new Image of the given dimenstion
+     * @param dimension dimension as [width, height]
+     * @throws IndexOutOfBoundsException if the array is less than two elements long
+     */
+    public AdvancedImage(int[] dimension) {
+        this(dimension[0], dimension[1]);
+    }
+
+    /**
      * Creates a new AdvancedImage of ARGB type.
      * @param width width of the image
      * @param height height of the image
@@ -38,6 +52,12 @@ public class AdvancedImage extends BufferedImage implements Cloneable {
      */
     public AdvancedImage(int width, int height, int imageType) {
         super(width, height, imageType);
+    }
+
+    public AdvancedImage(String text, Font font, Color foreground, Color background) {
+        this(Utils.getStringDimensions(font, text));
+        fill(background);
+        drawText(foreground, font, text);
     }
 
     /**
@@ -110,7 +130,7 @@ public class AdvancedImage extends BufferedImage implements Cloneable {
     private void drawImage_(BufferedImage image, int x, int y, float opaque) {
         Graphics2D g2d = createGraphics();
         g2d.setComposite(
-                AlphaComposite.getInstance(AlphaComposite.SRC, opaque));
+                AlphaComposite.getInstance(keepMetaInfo? AlphaComposite.SRC : AlphaComposite.SRC_OVER, opaque));
         g2d.drawImage(image, x, y, null);
         g2d.dispose();
     }
@@ -256,7 +276,7 @@ public class AdvancedImage extends BufferedImage implements Cloneable {
      * @return a rotated version of this image
      */
     public AdvancedImage rotate(double angle) {
-        return rotateImageByDegrees(this, angle);
+        return rotateImageByDegrees(this, -angle);
     }
 
     /**
@@ -295,6 +315,28 @@ public class AdvancedImage extends BufferedImage implements Cloneable {
         i.imgs = img.imgs;
 
         return i;
+    }
+
+    public AdvancedImage mirrorHorizontally() {
+        AdvancedImage mirror = new AdvancedImage(getDimension());
+        int width = getWidth(), height = getHeight();
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                mirror.setRGB(j,i,getRGB(j, width-1-i));
+            }
+        }
+        return mirror;
+    }
+
+    public AdvancedImage mirrorVertically() {
+        AdvancedImage mirror = new AdvancedImage(getDimension());
+        int width = getWidth(), height = getHeight();
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                mirror.setRGB(j,i,getRGB(height-j-1, i));
+            }
+        }
+        return mirror;
     }
 
     /**

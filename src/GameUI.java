@@ -50,7 +50,7 @@ public class GameUI extends JFrame {
      * @param world the world
      */
     public GameUI(String name, World world) {
-        this(name, world, true);
+        this(name, world, false);
     }
     /**
      * Creates a new UI for a JPanel

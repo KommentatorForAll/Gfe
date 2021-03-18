@@ -128,7 +128,8 @@ public class WorldUI extends JPanel {
                 case TILE:
                     while (wy < pxsize) {
                         while (wx < pxsize) {
-                            i.drawImage(img, wx, wy, 1);
+                            System.out.println(obj.rotation);
+                            i.drawImage(img.rotate(obj.rotation), wx, wy, 1);
                             wx += iw;
                         }
                         wx = 0;
@@ -153,7 +154,7 @@ public class WorldUI extends JPanel {
                         x += pxsize/2-obj.img.getWidth(null)/2;
                         y += pxsize/2-obj.img.getHeight(null)/2;
                 }
-            g.drawImage(i, x, y, null);
+            g.drawImage(i.rotate(obj.rotation), x, y, null);
         });
         //objs.forEach((obj, pos) -> g.drawImage(obj.img, pos[0]*pxsize+pxsize/2-obj.img.getWidth(null)/2, pos[1]*pxsize+pxsize/2-obj.img.getHeight(null)/2, null));
     }
