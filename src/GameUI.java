@@ -17,6 +17,7 @@ public class GameUI extends JFrame {
      * Currently not in use. may either be implemented or removed later
      * @deprecated
      */
+    @Deprecated
     public boolean adContaminated;
 
     /**
@@ -24,6 +25,10 @@ public class GameUI extends JFrame {
      */
     public GraphicsDevice[] monitors = getMonitors();
 
+    /**
+     * the currently selected monitor
+     */
+    public int selectedMonitor = monitors.length-1;
     /**
      * The dimenstion of the bar at the top, showing the minimize, maximize and close Button
      */
@@ -72,6 +77,7 @@ public class GameUI extends JFrame {
         switchWorld(world);
         mpos = getLastMonitorPosition();
         setLocation(mpos[0]-world.ui.getWidth()/2,mpos[1]-world.ui.getHeight()/2);
+        setFocusTraversalKeysEnabled(false);
     }
 
     /**
@@ -120,6 +126,32 @@ public class GameUI extends JFrame {
     public GraphicsDevice[] getMonitors() {
         GraphicsEnvironment g = GraphicsEnvironment.getLocalGraphicsEnvironment();
         return g.getScreenDevices();
+    }
+
+    /**
+     * sets the frame position to the indexed monitor
+     * @param monitor the index of the monitor to set the frame to
+     */
+    public void setFramePosition(int monitor) {
+        monitors = monitors == null? getMonitors() : monitors;
+        if (0 > monitor || monitor > monitors.length) throw new IllegalArgumentException("Index must be > 0 and < monitor count");
+        int x = 0, y = 0, i = 0;
+        while (i < monitor) {
+            x += monitors[i].getDisplayMode().getWidth();
+            i++;
+        }
+        y = monitors[i].getDisplayMode().getHeight()/2-getSize().height/2;
+        setLocation(x - getSize().width/2+ monitors[i].getDisplayMode().getWidth()/2, Math.max(y, 0));
+        selectedMonitor = monitor;
+    }
+
+    /**
+     * returns the amount of monitors connected to the pc
+     * @return amount of monitors
+     */
+    public int getMonitorCount() {
+        monitors = monitors == null? getMonitors() : monitors;
+        return monitors.length;
     }
 
     /**

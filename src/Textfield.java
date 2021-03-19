@@ -9,7 +9,7 @@ public class Textfield extends Button {
      * maximum length of the included textfield.
      * -1 for no length limit
      */
-    public int maxsize = -1;
+    public int maxsize = -1, maxvalue = -1;
 
     /**
      * If only Numbers are allowed in the textfield
@@ -112,6 +112,9 @@ public class Textfield extends Button {
         if (maxsize != -1) {
             if (text.length() > maxsize) {
                 text = text.substring(0, maxsize);
+            }
+            if (isNumeric && maxvalue != -1 && Integer.parseInt(text) > maxvalue) {
+                text = text.substring(0,text.length()-2);
             }
         }
         update();

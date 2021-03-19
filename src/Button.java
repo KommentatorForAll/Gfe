@@ -13,6 +13,11 @@ public abstract class Button extends WorldObj {
     public String text = "";
 
     /**
+     * the name of the Button.
+     */
+    public String name = "";
+
+    /**
      * the width of the Button in pixel
      * If you want it to occupy one field of the world use {@link World#pixelSize}
      * Default Value: 400 px
@@ -215,6 +220,14 @@ public abstract class Button extends WorldObj {
     public final void setBackgroundImage(AdvancedImage backgroundImage) {
         this.backgroundImage = backgroundImage;
         update();
+    }
+
+    /**
+     * Sets the name of the button. doesn't change anything of its appearance
+     * @param name the new name of the button
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**

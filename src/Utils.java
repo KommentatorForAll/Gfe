@@ -58,6 +58,7 @@ public class Utils {
                 return new AdvancedImage(ImageIO.read(new File(filelocation)));
             return new AdvancedImage(ImageIO.read(is));
         } catch (IOException e) {
+            System.err.println("Error while loading the following image: " + filelocation);
             e.printStackTrace();
             return null;
         }
@@ -331,9 +332,14 @@ public class Utils {
         }
     }
 
-    public static Map<String, Clip> loadAllClips() {
+    /**
+     * Loads all Soundclips present in the ./assets/sounds/ folder.
+     * @see MusicHandler#loadClip(String) for more information
+     * @return a map of sounds as filename -> sound (filename without extension
+     */
+    public static HashMap<String, Clip> loadAllClips() {
         if (!attemptedJar) attemptJar();
-        Map<String, Clip> sounds = new HashMap<>();
+        HashMap<String, Clip> sounds = new HashMap<>();
         File dir = new File(assets+"sounds/");
         File[] dirFiles = dir.listFiles();
         String name;
@@ -341,7 +347,7 @@ public class Utils {
             for (File child : dirFiles) {
                 name = child.getName();
                 try {
-                    sounds.put(removeExt(name), MusicHandler.loadClip(name));
+                    sounds.put(removeExt(name), MusicHandler.loadClip(child.getAbsolutePath()));
                 }
                 catch (Exception e) {
                     System.err.println("Error while loading sound {}".replace("{}", name));

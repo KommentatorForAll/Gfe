@@ -79,7 +79,7 @@ public class InputsManager implements MouseListener, KeyListener, WindowListener
      * @return if the shift key is down (was down at any time during the last tick)
      */
     public boolean isKeyDown(char key) {
-        return keysDown.stream().anyMatch(k -> Character.toLowerCase(k.getKeyChar()) == key);
+        return keysDown.stream().anyMatch(k -> Character.toLowerCase(k.getKeyCode()) == key);
     }
 
     /**
