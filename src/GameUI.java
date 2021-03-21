@@ -104,7 +104,6 @@ public class GameUI extends JFrame {
         setSize(d);
         repaint();
         worldUI.setLocation(d.width/2-worldUI.getWidth()/2-bardim[0]/2, d.height/2-worldUI.getHeight()/2-bardim[1]/2);
-        System.out.println(worldUI.getLocation());
         add(worldUI);
 
 

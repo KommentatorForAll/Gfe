@@ -228,22 +228,18 @@ public class Utils {
      * @param filename the file to read.
      * @return the string inside of that file.
      */
-    public static String readFromAssets(String filename) {
+    public static InputStream readFromAssets(String filename) {
+        if (!attemptedJar) attemptJar();
         InputStream is = Utils.class.getResourceAsStream(assets+filename);
-        Scanner sc;
-        if (is == null) {
+        if (is == null)
             try {
-                sc = new Scanner(new File(assets+filename));
+                return new FileInputStream(assets+filename);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
-                return "";
             }
-        }
         else
-            sc = new Scanner(is);
-
-        sc.useDelimiter("\\z");
-        return sc.next();
+            return is;
+        return null;
     }
 
     /**
@@ -265,7 +261,10 @@ public class Utils {
             if ( je != null)
             {
                 if (je.isDirectory()) {
-                    me.stream().filter(e -> e.getName().startsWith(source)).forEach(e -> extractFile(e.getName(), to));
+                    me.stream().filter(e -> e.getName().startsWith(source)).forEach(e -> {
+                        System.out.println("extracting " + e.getName() + "...");
+                        extractFile(e.getName(), to);
+                    });
                     return new File(to);
                 }
                 else {

@@ -33,9 +33,9 @@ public class MusicHandler {
             in = AudioSystem.getClip();
             in.open( audioIn );
         } catch (Exception e) {
-            if (!location.endsWith(".wav")) throw new IllegalArgumentException("File must be a wav file");
-            System.err.println("Error while loading sound");
+            System.err.println("Error while loading sound: " + location);
             e.printStackTrace();
+            if (!location.endsWith(".wav")) throw new IllegalArgumentException("File must be a wav file");
         }
         return in;
     }
